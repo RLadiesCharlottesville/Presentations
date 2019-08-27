@@ -2,17 +2,6 @@
 # Author: Brigitte Hogan
 # date: 8/27/2019
 
-# Sources
-# - Wickham, H & Grolemund, G. 2016. R for Data Science. O'Reilly Media.
-# - Jones, M. 2017. Pipes and Plotting for RLadies MeetUp. 12/4/2017. [ManipulatingData_dplyr.Rmd]
-# - Espinoza, B. 2016. Advanced R Workshop: An Introduction to Stringr [An Introduction to Stringr.Rmd].
-# - Boehmke, B. Regex Functions in Stringr. [https://bradleyboehmke.github.io/tutorials/stringr_regex_functions]
-# - Harvard Chan Informatics Biocore. Introduction to R. HBC Training. [https://hbctraining.github.io/Intro-to-R/lessons/tidyverse_data_wrangling.html]
-# - Analytics Vidhya Content Team. 2019l A Beginner's Guide to Tidyverse: the Most Powerful Collection of R Packages for Data Science. [https://www.analyticsvidhya.com/blog/2019/05/beginner-guide-tidyverse-most-powerful-collection-r-packages-data-science/]
-# - Frigaard. 2017. Getting Started with tidyverse in R. [http://www.storybench.org/getting-started-with-tidyverse-in-r/]
-# - RStudio. https://lubridate.tidyverse.org
-
-
 # This tutorial covers over the basics of
 # - dplyr
 # - tidyr
@@ -21,18 +10,22 @@
 # - lubridate
 # - purrr
 
-## Packages
+# ________________________ -----------------------------------------------------
+## Packages ----
 library(here)
 library(tidyverse)
+library(lubridate)
+library(nycflights13)
 
-## dplyr --------------------------------------------------------------------
+# ________________________------------------------------------------------------
+## Data Wrangling with dplyr ----
 
-## Read in data
+## Read in data ####
 #setwd(here()) # optional
 nh <- read_csv(file="nhanes_modified.csv")
 nh 
 
-## Tibbles
+## Tibbles####
 # - using the readr package read_csv() reads in csv as a tbl (tibble)
 # - use as_tibble() to convert regular dataframes into tibbles
 
@@ -54,7 +47,7 @@ nh
 # all take a data frame or tibble as their input for the first argument
 # all return a data frame or tibble as output
 
-### filter()
+### filter() ####
 
 # If you want to filter rows of the data where some condition is true, use the filter() function. 
 # 1. The first argument is the data frame you want to filter, e.g. filter(mnha, ....
@@ -82,21 +75,11 @@ filter(nh, Income >= 70000 & Age <= 30)
 # YOUR TURN: How many people in the NHanes survey that meet the above two criteria are a racial minority (not white)?
 filter(nh, Income >= 70000 & Age <= 30 & Race != "White")
  
-----
   
-# EXERCISE
-# 1. Use filter to find out how many people in the 90th percentile for Weight have Diabetes. Hint: see ?quantile and try quantile(nh$Weight, probs=.90, na.rm = TRUE) to see the weight value which is higher than 90% of all the data, then filter() based on that. Try wrapping your answer with a dim() function so you can see how many there were.
-quantile(nh$Weight, probs=.90, na.rm = TRUE)
-dim(filter(nh, Weight >= 104.9)) #504
-dim(filter(nh, Weight >= 104.9 & Diabetes == "Yes")) #101
-101/504 #20% of people in the 90th percentile for weight have diabetes
- 
-----
-  
-### select()
-  
-# The filter() function allows you to return only certain rows matching a condition. The select() function returns only certain columns.
-# The first argument is the data, and subsequent arguments are the columns you want.
+### select() ####
+# - filter() allows you to return only certain rows matching a condition
+# - select() returns only certain columns
+# - first argument is the data, and subsequent arguments are the columns you want.
 
 # Select just the Pulse and Blood Pressure variables
 select(nh, Pulse, BPSys, BPDia)
@@ -108,7 +91,7 @@ select(nh, -id, -HomeRooms, -HomeOwn)
 nh
  
 
-### mutate()
+### mutate() ####
 # - mutate() function adds new columns to the data
 # - doesn't actually modify the data frame you're operating on
 # - result is transient unless you assign it to a new object
@@ -117,7 +100,7 @@ nh
 mutate(phys, CholRatio=HDLChol / TotChol)
  
 
-### arrange()
+### arrange() ####
 # - takes a data frame or tbl and arranges (or sorts) by column(s) of interest
 # - first argument is the data, and subsequent arguments are columns to sort on
 # - use the desc() function to arrange by descending
@@ -128,7 +111,7 @@ arrange(nh, Testosterone)
 arrange(nh, desc(Weight))
  
 
-### summarize()
+### summarize() ####
 # - summarize() function summarizes multiple values to a single value
 # - on its own the summarize() function doesn't seem to be all that useful
 # - summarize takes a data frame and returns a data frame
@@ -139,7 +122,7 @@ summarize(nh, mean(Weight, na.rm = TRUE))
 # Use a more friendly name, e.g., meanWeight, or whatever you want to call it.
 summarize(nh, meanWeight=mean(Weight, na.rm = TRUE))
  
-### group_by()
+### group_by() ####
 # - group_by() also isn't that useful on its own
 # - takes an existing data frame and coverts it into a grouped data frame
 # - operations are performed by group
@@ -148,7 +131,6 @@ nh
 group_by(nh, Race)
 group_by(nh, Race, Diabetes)
  
-
 # The real power comes in where group_by() and summarize() are used together
 
 # Get the mean Weight for each race
@@ -160,7 +142,7 @@ summarize(group_by(nh, Race), meanWeight=mean(Weight, na.rm = TRUE))
 summarize(group_by(nh, Race, Diabetes), meanWeight=mean(Weight, na.rm = TRUE))
  
 
-## The pipe: %>%
+## The pipe: %>% ####
 # - dplyr imports functionality from the magrittr package
 # - lets you "pipe" the output of one function to the input of another
 # - avoids nesting functions
@@ -174,7 +156,9 @@ filter(nh, SmokingStatus =="Current")
 nh %>% filter(SmokingStatus =="Current")
  
 
-# Exercise: Make a summary table of mean weight for each race and diabetes status (first filtering out Diabetes = NA). Then round the means to 2 digits and sort the results by the mean weight of each group
+# Exercises ####
+# 1. Make a summary table of mean weight for each race and diabetes status (first filtering out Diabetes = NA). Then round the means to 2 digits and sort the results by the mean weight of each group
+
 nh %>% 
   filter(Diabetes != "NA") %>%
   group_by(Race, Diabetes) %>% 
@@ -193,15 +177,14 @@ nh %>%
 # without the pipe, it gets ugly
 arrange(mutate(summarize(group_by(filter(nh, Diabetes !="NA"), Race, Diabetes), meanWeight=mean(Weight, na.rm = TRUE)), meanWeight=round(meanWeight, 2)), meanWeight)
 
-### Piping exercises
-# Show the BPSys, BPDia, and TotChol for minority people when Weight >= 100kg. Hint: 2 pipes: filter and select.
+
+# 2. Show the BPSys, BPDia, and TotChol for minority people when Weight >= 100kg. Hint: 2 pipes: filter and select.
 
 nh %>% 
   filter(Race != "White" & Weight >= 100) %>% 
   select(BPSys, BPDia, TotChol)
- 
 
-# Show the four female, current smokers with the highest Testosterone values. Return these womens' Race, Pulse, and Weight. Hint: 4 pipes: filter, arrange, head, and select.
+# 3. Show the four female, current smokers with the highest Testosterone values. Return these womens' Race, Pulse, and Weight. Hint: 4 pipes: filter, arrange, head, and select.
 
 nh %>% 
 filter(Gender=="female" & SmokingStatus== "Current") %>% 
@@ -209,8 +192,8 @@ arrange(desc(Testosterone)) %>%
 head(4) %>% 
 select(Race, Pulse, Weight) 
 
-
-## tidyr --------------------------------------------------------------------
+# ________________________------------------------------------------------------
+## tidyr ----
 
 ### Verbs
 # - gather(): “gathers” multiple cols and convert into key-value pairs
@@ -222,16 +205,15 @@ select(Race, Pulse, Weight)
 # 1. One variable might be spread across multiple columns
 # 2. One observation might be scattered across multiple rows
 
+
+## gather ####
 # gather() makes wide tables narrower and longer
-# spread() makes long tables shorter and wider
-
-# A built-in data set
-table4a
-
 # We need three parameters to use gather():
-# - the set of columns that represent values, not variables (1999 & 2000)
-# - the key: the variable whose values form the column names (year)
-# - the value: the variable whose values are spread over the cells (number of cases)
+# - 1. the set of columns that represent values, not variables (1999 & 2000)
+# - 2. the key: the variable whose values form the column names (year)
+# - 3. the value: the variable whose values are spread over the cells (number of cases)
+
+table4a # built-in data set
 table4a %>% 
   gather(`1999`, `2000`, key = "year", value = "cases")
 
@@ -241,18 +223,18 @@ table4b
 table4b %>% 
   gather(`1999`, `2000`, key = "year", value = "population")
 
+## spread ####
 # the opposite problem
-table2
-# an observation is a country in a year, but each obs is spread across 2 rows
-
+# spread() makes long tables shorter and wider
 # only need two parameters:
-# - key: column that contains variable names (type)
-# - value: column that contains values from multiple variables (count)
+# - 1. key: column that contains variable names (type)
+# - 2. value: column that contains values from multiple variables (count)
 
+table2 # an obs is a country in a year, but each obs is spread across 2 rows
 table2 %>%
   spread(key = type, value = count)
 
-## separate & unite
+## separate ####
 table3  # one column (rate) that contains two variables (cases and population)
 
 table3 %>% 
@@ -271,7 +253,7 @@ table3 %>%
 table3 %>% 
   separate(year, into = c("century", "year"), sep = 2)
 
-## unite
+## unite ####
 # - combines multiple columns into a single column
 # - default places underscore between columns
 
@@ -279,9 +261,8 @@ table5
 table5 %>% 
   unite(new, century, year, sep="")
 
-
-## ---------------------------------------------------------------------------
-## stringr
+# ________________________------------------------------------------------------
+## stringr ----
 
 ### verbs
 # - str_sub(): extract substrings from a char vector
@@ -299,14 +280,14 @@ double_quote <- "\"" # or '"'
 single_quote <- '\'' # or "'"
 backslash <- "\\"
 
-## Review of Strings
+## Review of strings ####
 # - concatenating strings & integers with c() converts integers to characters
 # - by default, R converts objects to their lowest denomination
 # - factors reduce to integers and integers reduce to characters
 c(factor("a"), "b", "&", 1)
 c(as.character(factor("a")), "b", "&", 1)
 
-# some data
+# Some data ####
 movie_titles <- c("gold diggers of broadway", "gone baby gone", 
                   "gone in 60 seconds", "gone with the wind", "good girl, the", 
                   "good burger", "goodbye girl, the", "good bye lenin!", 
@@ -323,25 +304,25 @@ fruit <- c("apple", "banana", "pear", "pineapple")
 # - string operators are basic string manipulation functions
 # - many of them have equivalent base R that are much slower and bulkier
 
-# str_to_upper(string)
+# str_to_upper(string) ####
 # - converts strings to uppercase
 # - ex. Convert all movie_titles to uppercase and store them as movie_titles
 movie_titles <- str_to_upper(movie_titles)
 movie_titles
 
-# str_to_lower(string)
+# str_to_lower(string) ####
 # - converts strings to lowercase
 # - ex. Convert all movie_titles back to lowercase and save as movie_titles
 movie_titles <- str_to_lower(movie_titles)
 movie_titles
 
-# str_to_title(string)
+# str_to_title(string) ####
 # - converts strings to title case
 # - ex. Convert all movie_titles to titlecase and store them as movie_titles
 movie_titles <- str_to_title(movie_titles)
 movie_titles
 
-# str_length(string)
+# str_length(string) ####
 # - returns the string length
 # - similar to base function nchar()
 # - converts factors to strings and also preserves NA's
@@ -351,7 +332,7 @@ nchar(NA)
 str_length(NA)
 
 
-## Extracting substrings
+## Extracting substrings ####
 
 # str_sub()
 # - str_sub(string, start, end) <- value
@@ -362,7 +343,7 @@ fruit
 str_sub(fruit, start = 3)
 
 
-## White Space
+## White Space ####
 
 # str_trim(): trim whitespace
 # - str_trim(string, side = c("both", "left", "right"))
@@ -379,7 +360,7 @@ str_trim(strings)
 str_pad(movie_titles, side = "right", 30)
 
 
-## Detecting Patterns
+## Detecting Patterns ####
 
 # str_detect()
 # - detectes whether a pattern is present in a string vector 
@@ -391,7 +372,7 @@ str_detect(state.name, pattern = "New")
 sum(str_detect(state.name, pattern = "New"))
 
 
-# Locating Patterns
+# Locating Patterns ####
 
 # 1. Locate First Match: str_locate()
 #    - locates the position of the first occurrence
@@ -405,9 +386,8 @@ str_locate(x, "[0-9]+") # find 1st sequence of 1 or more consecutive numbers
 #    - each list item provides the start & end positions for each pattern match 
 str_locate_all(x, "[0-9]+") # find all sequences of 1+ consecutive numbers
 
-
-## ---------------------------------------------------------------------------
-## forcats
+# ________________________------------------------------------------------------
+## forcats ----
 
 # main functions
 # - fct_reorder(): reorder a factor by another variable
@@ -443,7 +423,7 @@ factor(x1)
 # access the set of valid levels directly with levels():
 levels(f2)
 
-## Modifying factor order
+## Modifying factor order ####
 # - reserve fct_reorder() for factors whose levels are arbitrarily ordered
 # - fct_reorder() takes three arguments:
 #    1. f, the factor whose levels you want to modify
@@ -476,7 +456,7 @@ rincome_summary %>%
   ggplot(aes(age, fct_reorder(rincome, age))) + 
   geom_point()
 
-## fct_relevel()
+## fct_relevel() ####
 # - takes a factor, f, and any number of levels you want moved to the front
 # - pull “Not applicable” to the front 
 rincome_summary %>%
@@ -484,13 +464,14 @@ rincome_summary %>%
   ggplot(aes(age, rincome)) +
   geom_point()
 
-## fct_infreq(): reorder by the frequency of values
+## fct_infreq() ####
+# - reorder by the frequency of values
 gss_cat %>%
   mutate(marital = marital %>% fct_infreq()) %>%
   ggplot(aes(marital)) +
   geom_bar()
 
-## fct_lump()
+## fct_lump() ####
 # - collapse least/ most frequent values of a factor into “other"
 # - lump together all the small groups to make a plot or table simpler
 gss_cat %>%
@@ -498,16 +479,16 @@ gss_cat %>%
   count(relig)
 
 
-## ---------------------------------------------------------------------------
-## lubridate
-library(lubridate)
-library(nycflights13)
+# ________________________------------------------------------------------------
+## lubridate ----
+
 
 # Main functions
 # - Date-times: ymd(), dmy(), myd(), etc.
 # - Components: year(), month(), mday(), hour(), minute(), second()
 # - Time zones: with_tz(), force_tz()
 
+# system time ####
 today()
 now()
 
@@ -520,12 +501,14 @@ now()
 # - identify the order in which year, month, and day appear in your dates
 # - arrange “y”, “m”, and “d” in the same order
 # - order is the name of the lubridate function that will parse your date
+
+## helpers ####
 ymd("2017-01-31")
 mdy("January 31st, 2017")
 dmy("31-Jan-2017")
 ymd(20170131) # also takes unquoted dates
 
-# create a date-time
+## create a date-time ####
 # add an underscore and one or more of “h”, “m”, and “s” to the name
 ymd_hms("2017-01-31 20:11:59")
 mdy_hm("01/31/2017 08:01")
@@ -533,8 +516,7 @@ mdy_hm("01/31/2017 08:01")
 # force the creation of a date-time from a date by supplying a timezone:
 ymd(20170131, tz = "UTC")
 
-
-## Getting components
+## Getting components ####
 # - pull out individual parts of the date with the accessor functions
 # - year(), month(), mday() (day of the month), yday() (day of the year), wday() (day of the week), hour(), minute(), and second()
 
@@ -550,7 +532,7 @@ wday(datetime)
 month(datetime, label = TRUE)
 wday(datetime, label = TRUE, abbr = FALSE)
 
-# Timezones
+## Timezones ####
 # - Unless otherwise specified, lubridate always uses UTC
 # - complete list of all time zone names with OlsonNames():
 Sys.timezone()
@@ -580,4 +562,13 @@ x4a
 x4b <- force_tz(x4, tzone = "Australia/Lord_Howe")
 x4b
 
-
+# ________________________------------------------------------------------------
+# Sources ----
+# - Wickham, H & Grolemund, G. 2016. R for Data Science. O'Reilly Media.
+# - Jones, M. 2017. Pipes and Plotting for RLadies MeetUp. 12/4/2017. [ManipulatingData_dplyr.Rmd]
+# - Espinoza, B. 2016. Advanced R Workshop: An Introduction to Stringr [An Introduction to Stringr.Rmd].
+# - Boehmke, B. Regex Functions in Stringr. (https://bradleyboehmke.github.io/tutorials/stringr_regex_functions)
+# - Harvard Chan Informatics Biocore. Introduction to R. HBC Training. (https://hbctraining.github.io/Intro-to-R/lessons/tidyverse_data_wrangling.html)
+# - Analytics Vidhya Content Team. 2019l A Beginner's Guide to Tidyverse: the Most Powerful Collection of R Packages for Data Science. (https://www.analyticsvidhya.com/blog/2019/05/beginner-guide-tidyverse-most-powerful-collection-r-packages-data-science/)
+# - Frigaard. 2017. Getting Started with tidyverse in R. (http://www.storybench.org/getting-started-with-tidyverse-in-r/)
+# - RStudio. Tidyverse. (https://lubridate.tidyverse.org)

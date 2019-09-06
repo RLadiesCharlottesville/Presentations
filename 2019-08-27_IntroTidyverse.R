@@ -21,7 +21,7 @@ library(nycflights13)
 ## Data Wrangling with dplyr ----
 
 ## Read in data ####
-#setwd(here()) # optional
+#setwd(here("data")) # optional
 nh <- read_csv(file="nhanes_modified.csv")
 nh 
 
@@ -61,18 +61,21 @@ nh
   
 # Look at just the people with Diabetes
 filter(nh, Diabetes == "Yes")
+nh %>% filter(Diabetes == "Yes")
 
 # Optionally, bring that result up in a View window
 View(filter(nh, Diabetes == "Yes"))
+nh %>% filter(Diabetes == "Yes") %>% View()
 
 # Look at multiple Race categories
-unique(nh$Race) #what race categories are there?
+unique(nh$Race) # what race categories are there?
 filter(nh, Race =="Asian" | Race =="Black")
 
 # Look at people of or under age 30 whose income greater than or equal to 70K
 filter(nh, Income >= 70000 & Age <= 30)
 
 # YOUR TURN: How many people in the NHanes survey that meet the above two criteria are a racial minority (not white)?
+nh %>% filter(Income >= 70000 & Age <= 30) %>% filter()
 filter(nh, Income >= 70000 & Age <= 30 & Race != "White")
  
   
@@ -97,7 +100,7 @@ nh
 # - result is transient unless you assign it to a new object
 
 # The HDL to Total Cholesterol value can be predictive for risk of heart disease. Let's mutate this data to add a new variable called "CholRatio" that is the HDLChol / TotChol.
-mutate(phys, CholRatio=HDLChol / TotChol)
+mutate(nh, CholRatio= DirectChol / TotChol)
  
 
 ### arrange() ####
@@ -208,6 +211,7 @@ select(Race, Pulse, Weight)
 
 ## gather ####
 # gather() makes wide tables narrower and longer
+
 # We need three parameters to use gather():
 # - 1. the set of columns that represent values, not variables (1999 & 2000)
 # - 2. the key: the variable whose values form the column names (year)
@@ -259,7 +263,7 @@ table3 %>%
 
 table5
 table5 %>% 
-  unite(new, century, year, sep="")
+  unite(new, century, year)
 
 # ________________________------------------------------------------------------
 ## stringr ----
@@ -421,7 +425,7 @@ y2
 factor(x1)
 
 # access the set of valid levels directly with levels():
-levels(f2)
+levels(y2)
 
 ## Modifying factor order ####
 # - reserve fct_reorder() for factors whose levels are arbitrarily ordered

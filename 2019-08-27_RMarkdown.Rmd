@@ -3,7 +3,6 @@ title: "R-Ladies RMarkdown Tutorial"
 author: "Brigitte Hogan"
 date: "8/27/2019"
 output:
-  html_document: default
   pdf_document: default
 ---
 
